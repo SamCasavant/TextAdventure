@@ -11,5 +11,6 @@ while(1):
     if player_move:
         player.act(player_move)
         for actor in actorList:
-            actor.act()
-            actor.update()
+            if 'user' not in actor.tags:
+                actor.act()
+                actor.update()

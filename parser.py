@@ -13,7 +13,7 @@ def parse(player, command): #produces actions of the form [verb, thing]
             obj = determineObject(player, words[1:])
         if words[0] == "move":
             if obj in player.location.connections:
-                return(["move", obj.getDest(player)])
+                return(["move", obj])
             else:
                 print("I can't go %s from here."% words[1])
                 return 0
@@ -74,7 +74,7 @@ def parse(player, command): #produces actions of the form [verb, thing]
     else:
         obj = determineObject(player, words)
         if obj in player.location.connections: 
-            return(["move", obj.getDest(player)])
+            return(["move", obj])
 
 def translate(words):#changes out synonyms and makes lowercase
     for index, word in enumerate(words):
@@ -93,23 +93,27 @@ def determineObject(player, words):
         index = [thing.name.lower() for thing in player.location.things].index(words)
         return player.location.things[index]
     except ValueError:
-        #is it an actor
+        #is it an actor (by proper name)
         try:
-            index = [actor.name.lower() for actor in player.location.actors].index(words)
+            index = [actor.properName.lower() for actor in player.location.actors].index(words)
             return player.location.actors[index]
         except ValueError:
-            #is it a direction
             try:
-                index = [connection.getDir(player).lower() for connection in player.location.connections].index(words)
-                return player.location.connections[index]
+                index = [actor.commonName.lower() for actor in player.location.actors].index(words)
+                return player.location.actors[index]
             except ValueError:
-                #is it a place
+                #is it a direction
                 try:
-                    index = [connection.getDest(player).name.lower() for connection in player.location.connections].index(words)
+                    index = [connection.getDir(player).lower() for connection in player.location.connections].index(words)
                     return player.location.connections[index]
                 except ValueError:
-                    print(f"{words} not available.")
-                    return 0
+                    #is it a place
+                    try:
+                        index = [connection.getDest(player).name.lower() for connection in player.location.connections].index(words)
+                        return player.location.connections[index]
+                    except ValueError:
+                        print(f"{words} not available.")
+                        return 0
 
 
 

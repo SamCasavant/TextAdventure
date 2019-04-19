@@ -1,8 +1,10 @@
 
 class Space():
-    def __init__(self, name, description):
+    def __init__(self, name, description, visibleLocations = [], audibleLocations = []):
         self.name = name
         self.description= description
+        self.visibleLocations = [self]
+        self.audibleLocations = [self]
         self.connections = []
         self.actors = []
         self.things = []
@@ -26,7 +28,7 @@ class Space():
             self.things.remove(thing)
     
 class Connection():
-    def __init__(self, loc_a, loc_b, dir_a, dir_b, blocked = False, blockreason = ""):
+    def __init__(self, loc_a, loc_b, dir_a, dir_b, blocked = False, blockreason = "", visible=0, audible=1):
         self.loc_a = loc_a
         self.loc_b = loc_b
         self.dir_a = dir_a
@@ -34,6 +36,12 @@ class Connection():
         self.blocked = blocked
         loc_a.connections.append(self)
         loc_b.connections.append(self)
+        if visible:
+            self.loc_a.visibleLocations.append(loc_b)
+            self.loc_b.visibleLocations.append(loc_a)
+        if audible:
+            self.loc_a.audibleLocations.append(loc_b)
+            self.loc_b.audibleLocations.append(loc_a)
     def getDest(self, actor):
         if actor.location == self.loc_a:
             return self.loc_b
