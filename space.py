@@ -36,12 +36,8 @@ class Connection():
         self.blocked = blocked
         loc_a.connections.append(self)
         loc_b.connections.append(self)
-        if visible:
-            self.loc_a.visibleLocations.append(loc_b)
-            self.loc_b.visibleLocations.append(loc_a)
-        if audible:
-            self.loc_a.audibleLocations.append(loc_b)
-            self.loc_b.audibleLocations.append(loc_a)
+        self.visible = visible
+        self.audible = audible
     def getDest(self, actor):
         if actor.location == self.loc_a:
             return self.loc_b

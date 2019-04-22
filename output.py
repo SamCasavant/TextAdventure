@@ -1,11 +1,18 @@
-def visOutput(player, eventLocations, output):
-    for location in eventLocations:
+def visOutput(player, location, output):
+    visibleLocations = [location]
+    for connection in location.connections:
+        if connection.visible:
+            visibleLocations.append(connection.getDest(location))
+    for location in visibleLocations:
         if location in player.location.visibleLocations:
             print(output)
             return
-def audOutput(player, actor, output):
-    if actor.location in player.location.audibleLocations:
-        print(output)
+def audOutput(player, location, output):
+    audibleLocations = []
+    for connection in location.connections:
+        if connection.audible:
+            audibleLocations.append(connection.getDest(location))
+            print(output)
 
 def listToNatural(pyList):
     output = ""
@@ -31,3 +38,8 @@ def listToNatural(pyList):
         else:
             output += f"{item[1]} {item[0]}s, "
     return output[:-2] #delete trailing comma and space
+
+def report(player, event, location, cue='visible', verbose = False):
+    if verbose:
+        print(event)
+    else:

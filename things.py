@@ -50,7 +50,7 @@ class Door(Thing):
             connection.block("The door is closed.")
     def lock(self, key, actor):
         if not self.closed:
-            print(f"I cannot lock an open door.")
+            return [0, [f"{actor.name} cannot lock an open door.", actor], actor.location)
         else:
             if self.lockable:
                 if not self.locked:

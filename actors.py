@@ -60,7 +60,7 @@ class Actor(things.Thing):
             self.act()
         
     def createPlan(self):
-        for adj in self.state.keys:
+        for adj in self.states.keys():
             if adj in self.tags:
                 desire = stateToDesire[adj]
                 for thing in self.inventory:
