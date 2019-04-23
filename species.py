@@ -37,21 +37,28 @@ class User(Human):
     def act(self, action):
         if action[0] == 'move':
             self.move(action[1])
+            return([1, self.location, [f"I move to {self.location.name}", self, 'move']])
         elif action[0] == 'take':
             self.take(action[1])
-            print("I pick up %s."% action[1].name)
+            return([1, self.location, [f"I pick up {action[1].name}", self, 'take']])
         elif action[0] == 'look':
             self.look()
+            return[0]
         elif action[0] == 'look at':
             action[1].lookAt()
+            return [0]
         elif action[0] == 'open':
             action[1].open(self)
+            return([1, self.location, [f"I open {action[1].name}", self, 'open']])
         elif action[0] == 'close':
             action[1].close()
+            return([1, self.location, [f"I close {action[1].name}", self, 'close']])
         elif action[0] == 'inventory':
             self.chk_inventory()
+            return [0]
         elif action[0] == 'wait':
-            print("I wait.")
+            return([1, self.location, ["I wait.", self, 'wait']])
+
 
 
 class Animal(Actor):

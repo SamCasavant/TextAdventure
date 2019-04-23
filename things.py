@@ -18,7 +18,7 @@ class Thing():
         else:
             return False
 
-    def lookAt(self):
+    def lookAt(self): #Broken due to thing having .name and actor having .propername; will probably do away with proper/common name
         print(self.name)
         if self.name != self.description:
             print(self.description)
@@ -50,7 +50,7 @@ class Door(Thing):
             connection.block("The door is closed.")
     def lock(self, key, actor):
         if not self.closed:
-            return [0, [f"{actor.name} cannot lock an open door.", actor], actor.location)
+            return [0, [f"{actor.name} cannot lock an open door.", actor], actor.location]
         else:
             if self.lockable:
                 if not self.locked:

@@ -39,7 +39,11 @@ def listToNatural(pyList):
             output += f"{item[1]} {item[0]}s, "
     return output[:-2] #delete trailing comma and space
 
-def report(player, event, location, cue='visible', verbose = False):
+def report(player, event, cue='visible', verbose = False):
     if verbose:
         print(event)
     else:
+        if cue == 'visible':
+            visOutput(player, event[1], event[0])
+        elif cue == 'audible':
+            audOutput(player, event[1], event[0])

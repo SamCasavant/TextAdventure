@@ -41,23 +41,23 @@ class Actor(things.Thing):
     def act(self):
         if len(self.plan)>0:
             action = self.plan[0]
+            self.plan.pop(0)
             if action[0] == 'move':
                 self.move(action[1])
+                return([1, self.location, [f"{self.properName} moves to {self.location.name}", self, 'take']])
             elif action[0] == 'take':
                 self.take(action[1])
-                output.visOutput(player, [self.location], f"{self.properName} picks up {action[1].name}.")
+                return([1, self.location, [f"{self.properName} picks up {action[1].name}", self, 'take']])
             elif action[0] == 'eat':
                 self.eat(action[1])
-                output.visOutput(player, [self.location], f"{self.properName} eats {action[1].name}.")
+                return([1, self.location, [f"{self.properName} eats {action[1].name}.", self, 'eat']])
             elif action[0] == 'wait':
-                output.visOutput(player, [self.location], f"{self.properName} is waiting.")
-                pass
+                return([1, self.location, [f"{self.properName} is waiting.", self, 'wait']])
             else:
-                output.visOutput(player, [self.location], f"{self.properName} attempts to {action[0]} but doesn't know how.")
-            self.plan.pop(0)
+                return([0, self.location, [f"{self.properName} attempts to {action[0]} but doesn't know how.", self, None]])
         else:
             self.createPlan()
-            self.act()
+            return self.act()
         
     def createPlan(self):
         for adj in self.states.keys():
@@ -87,14 +87,15 @@ class Actor(things.Thing):
 
     def move(self, connection):
         if connection.blocked:
-            output.visOutput(player, [self.location], f"{self.properName} tries to go to {connection.getDest(self).name}, but {connection.blockreason}")
+            print("work in progress, people")
+            #output.visOutput(player, [self.location], f"{self.properName} tries to go to {connection.getDest(self).name}, but {connection.blockreason}")
         else:
             target = connection.getDest(self)
             eventLocations = [self.location, target]
             self.location.actors.remove(self)
             self.location = target
             self.location.actors.append(self)
-            output.visOutput(player, eventLocations, f"{self.properName} goes to {self.location.name}.")
+            #output.visOutput(player, eventLocations, f"{self.properName} goes to {self.location.name}.")
 
     def take(self, thing):
         if len(self.inventory)<self.max_inv: 
