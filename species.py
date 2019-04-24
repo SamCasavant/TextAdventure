@@ -1,16 +1,34 @@
 from actors import Actor, player, actorList
 import output
 import random
+from chrono import TIME
 
 class Human(Actor):
     def __init__(self, properName, commonName='person', description = "A regular human being.", location = 0, inventory = [], max_inv = 5, hunger_rate = 1, hunger = 3, itinerary = [], plan = [], tags=['human']):
-        super(Human, self).__init__(properName, commonName, description, location, inventory, max_inv, hunger_rate, hunger, tags=tags)
-        self.itinerary = itinerary
+        super(Human, self).__init__(properName, commonName = commonName, description = description, location =location,
+         inventory = inventory, max_inv = max_inv, hunger_rate = hunger_rate, hunger =hunger, tags=tags)
+        if itinerary:
+            self.itinerary = itinerary.sort()
+        else:
+            self.itinerary = []
 
-    def act_plan(self):
-        super.plan()
-        if len(self.plan)<1:
-            self.plan.append(self.itinerary[0])
+    def createPlan(self):
+        super(Human, self).createPlan()
+        if self.itinerary:
+            print(self.properName)
+            if self.itinerary[0][0]-1200 < TIME.time: #If action is to be done in less than 20 minutes. TODO: Make dynamic
+                if self.itinerary[0][1] in [item[0] for item in self.plan]:
+                    index = [item[0] for item in self.plan].index(self.itinerary[0][1])
+                    self.plan[index] = [self.itinerary[0][1], 1000/(self.itinerary[0][0]-TIME.time+1)]
+                else:
+                    self.plan.append([self.itinerary[0][1][0], self.itinerary[0][1][1], 1000/(self.itinerary[0][0]-TIME.time+1)])
+            self.plan.sort(key = lambda x: x[-1], reverse = True) 
+        
+    def addItinerary(self, itinerary):
+        for item in itinerary:
+            self.itinerary.append(item)
+        itinerary.sort()
+
 
 
 class User(Human):

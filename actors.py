@@ -39,9 +39,11 @@ class Actor(things.Thing):
                 self.tags.append('thirsty')
 
     def act(self):
+        self.createPlan()
+        print(self.properName, self.plan)
         if len(self.plan)>0:
             action = self.plan[0]
-            self.plan.pop(0)
+            #self.plan.pop(0)
             if action[0] == 'move':
                 self.move(action[1])
                 return([1, self.location, [f"{self.properName} moves to {self.location.name}", self, 'take']])
@@ -55,11 +57,9 @@ class Actor(things.Thing):
                 return([1, self.location, [f"{self.properName} is waiting.", self, 'wait']])
             else:
                 return([0, self.location, [f"{self.properName} attempts to {action[0]} but doesn't know how.", self, None]])
-        else:
-            self.createPlan()
-            return self.act()
-        
-    def createPlan(self):
+
+
+    def createPlan(self): #Actor plans based on current state; primary mechanic for animals, secondary for humans
         for adj in self.states.keys():
             if adj in self.tags:
                 desire = stateToDesire[adj]
@@ -90,8 +90,7 @@ class Actor(things.Thing):
             print("work in progress, people")
             #output.visOutput(player, [self.location], f"{self.properName} tries to go to {connection.getDest(self).name}, but {connection.blockreason}")
         else:
-            target = connection.getDest(self)
-            eventLocations = [self.location, target]
+            target = connection.getDest(self.location)
             self.location.actors.remove(self)
             self.location = target
             self.location.actors.append(self)

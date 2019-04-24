@@ -109,7 +109,7 @@ def determineObject(player, words):
                 except ValueError:
                     #is it a place
                     try:
-                        index = [connection.getDest(player).name.lower() for connection in player.location.connections].index(words)
+                        index = [connection.getDest(player.location).name.lower() for connection in player.location.connections].index(words)
                         return player.location.connections[index]
                     except ValueError:
                         print(f"{words} not available.")

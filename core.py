@@ -1,10 +1,9 @@
 from parser import parse
-from world import worldInit
+from world2 import worldInit
 from actors import actorList
-import chrono
+from chrono import TIME
 import output
 
-time = chrono.Chrono(18000, step=300)#Start time at 5AM, 5 minutes at a time
 
 player = worldInit()
 print("I wake up and look around.")
@@ -19,6 +18,8 @@ while(1):
             for actor in actorList:
                 if 'user' not in actor.tags:
                     result = actor.act()
-                    output.report(player, result[2], result[1], verbose=True) 
+                    if result[0]:
+                        output.report(player, result[2], result[1], verbose=True) 
                     actor.update()
-            time.tick()
+            TIME.tick()
+            print(TIME.getTime('clock'))
