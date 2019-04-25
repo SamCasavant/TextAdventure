@@ -1,5 +1,5 @@
-class Thing():
-    def __init__(self, name, description = False, location=0, tags=[], eat_val = 4):
+class Thing:
+    def __init__(self, name, description=False, location=0, tags=[], eat_val=4):
         self.name = name
         if description:
             self.description = description
@@ -11,31 +11,35 @@ class Thing():
         if location:
             location.addThings([self])
 
-    def take(self):
-        if "take" in self.tags:
-            self.location.removeThing(self)
-            return True
-        else:
-            return False
-
-    def lookAt(self): #Broken due to thing having .name and actor having .propername; will probably do away with proper/common name
+    def lookAt(
+        self
+    ):  # Broken due to thing having .name and actor having .propername; will probably do away with proper/common name
         print(self.name)
         if self.name != self.description:
             print(self.description)
         for tag in self.tags:
-            if tag in ['eat', 'take', 'drink']:
+            if tag in ["eat", "take", "drink"]:
                 print(f"I can {tag} this.")
-            elif tag in ['take_req']:
+            elif tag in ["take_req"]:
                 print("I have to have this in my inventory to use it.")
-            elif tag in ['hungry', 'thirsty']:
+            elif tag in ["hungry", "thirsty"]:
                 print(f"It looks {tag}.")
-    
+
 
 class Door(Thing):
-    def __init__(self, name, connection, description = False, location=0, tags=['door','openable','pickable'],
-                 key=False, lockable = True, locked=False, closed = True):
-        super(Door, self).__init__(name, description, location, tags,
-              eat_val = 0)
+    def __init__(
+        self,
+        name,
+        connection,
+        description=False,
+        location=0,
+        tags=["door", "openable", "pickable"],
+        key=False,
+        lockable=True,
+        locked=False,
+        closed=True,
+    ):
+        super(Door, self).__init__(name, description, location, tags, eat_val=0)
         self.tags = tags
         self.lockable = lockable
         self.locked = locked
@@ -48,9 +52,14 @@ class Door(Thing):
                 print("Initialization Error: Lockable doors require a key.")
         if self.closed:
             connection.block("The door is closed.")
+
     def lock(self, key, actor):
         if not self.closed:
-            return [0, [f"{actor.name} cannot lock an open door.", actor], actor.location]
+            return [
+                0,
+                [f"{actor.name} cannot lock an open door.", actor],
+                actor.location,
+            ]
         else:
             if self.lockable:
                 if not self.locked:
@@ -60,8 +69,8 @@ class Door(Thing):
         if self.locked:
             if key == self.key:
                 self.locked = False
-            elif 'pick' in key.tags:
-                if 'pickable' in self.tags:
+            elif "pick" in key.tags:
+                if "pickable" in self.tags:
                     self.locked = False
             else:
                 print(f"{key.name} doesn't unlock this door.")
@@ -87,17 +96,25 @@ class Door(Thing):
             self.connection.block("The door is shut.")
         else:
             print("This door is already closed.")
-        
-        
+
 
 class Container(Thing):
-    def __init__(self, name, contents = [], description = False, location=0, tags=['container', 'pickable'],
-                 key=False, lockable = True, locked=False, closed = True):
-        super(Container, self).__init__(name, description, location, tags,
-              eat_val = 0)
+    def __init__(
+        self,
+        name,
+        contents=[],
+        description=False,
+        location=0,
+        tags=["container", "pickable"],
+        key=False,
+        lockable=True,
+        locked=False,
+        closed=True,
+    ):
+        super(Container, self).__init__(name, description, location, tags, eat_val=0)
         self.contents = contents
         for item in self.contents:
-            item.tags.append('contained')
+            item.tags.append("contained")
         self.tags = tags
         self.lockable = lockable
         self.locked = locked
@@ -107,7 +124,7 @@ class Container(Thing):
                 self.key = key
             else:
                 print("Initialization Error: Lockable containers require a key.")
-        
+
     def lock(self, key, actor):
         if self.lockable:
             if not self.locked:
@@ -121,8 +138,8 @@ class Container(Thing):
         if self.locked:
             if key == self.key:
                 self.locked = False
-            elif 'pick' in key.tags:
-                if 'pickable' in self.tags:
+            elif "pick" in key.tags:
+                if "pickable" in self.tags:
                     self.locked = False
             else:
                 print(f"{key.name} doesn't unlock this.")
@@ -149,6 +166,6 @@ class Container(Thing):
 
     def withdraw(self, thing, actor):
         if thing in self.contents:
-            if len(actor.inventory)<actor.max_inv:
+            if len(actor.inventory) < actor.max_inv:
                 actor.inventory.append(thing)
                 self.contents.remove(thing)

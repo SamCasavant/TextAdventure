@@ -4,29 +4,37 @@ import space
 import copy
 import species
 
+
 def worldInit():
-    #things
-    carKey = things.Thing("car key", tags = ['take'])
-    catFood = things.Thing("cat food", tags = ['take', 'eat', 'cat food'], eat_val = 6)
-    #Actors
-    hungryCat = species.Housecat(properName = "Hungry Cat", description="He looks like he has a big appetite.",
-                                 inventory=[catFood], hunger=15, hunger_rate = 15)
-    mouse = species.Animal(commonName = "mouse", description = "It's a little mouse.", tags = [])
-    #Spaces
+    # things
+    carKey = things.Thing("car key", tags=["take"])
+    catFood = things.Thing("cat food", tags=["take", "eat", "cat food"], eat_val=6)
+    # Actors
+    hungryCat = species.Housecat(
+        properName="Hungry Cat",
+        description="He looks like he has a big appetite.",
+        inventory=[catFood],
+        hunger=15,
+        hunger_rate=15,
+    )
+    mouse = species.Animal(
+        commonName="mouse", description="It's a little mouse.", tags=[]
+    )
+    # Spaces
     room27 = space.Space("Room 27", "My hotel room.")
     hallway = space.Space("the second floor hallway", "A long narrow hallway.")
-    #Spaces -Exits
-    doorway = space.Connection(room27, hallway, 'south', 'north', blocked=False)
-    #Spaces -doors
+    # Spaces -Exits
+    doorway = space.Connection(room27, hallway, "south", "north", blocked=False)
+    # Spaces -doors
     hallway.addThings([things.Door("door", doorway, "An old wooden door.", room27)])
-    #Spaces -things
+    # Spaces -things
     room27.addThings([carKey])
     room27.addThings([copy.copy(catFood)])
     hallway.addThings([copy.copy(catFood), copy.copy(catFood), copy.copy(catFood)])
-    #Spaces -Actors
+    # Spaces -Actors
     room27.addActors([hungryCat])
     room27.addActors([copy.copy(mouse), copy.copy(mouse)])
-    #Player
-    player = species.User("User", location = room27)
+    # Player
+    player = species.User("User", location=room27)
     actors.player = player
     return player
