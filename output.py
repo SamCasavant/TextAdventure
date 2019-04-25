@@ -19,7 +19,7 @@ def audOutput(player, location, output):
 
 def listToNatural(pyList):
     output = ""
-    if len(pyList)==0:
+    if len(pyList) == 0:
         return output
     if len(pyList) == 1:
         return pyList[0]

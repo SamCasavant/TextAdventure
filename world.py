@@ -2,7 +2,7 @@ import actors
 import things
 import space
 import copy
-import species
+import actors
 
 
 def worldInit():
@@ -10,16 +10,17 @@ def worldInit():
     carKey = things.Thing("car key", tags=["take"])
     catFood = things.Thing("cat food", tags=["take", "eat", "cat food"], eat_val=6)
     # Actors
-    hungryCat = species.Housecat(
+    hungryCat = actors.HouseCat(
         properName="Hungry Cat",
+        commonName="Cat",
         description="He looks like he has a big appetite.",
         inventory=[catFood],
         hunger=15,
         hunger_rate=15,
     )
-    mouse = species.Animal(
-        commonName="mouse", description="It's a little mouse.", tags=[]
-    )
+    # mouse = actors.Animal(
+    #    commonName="mouse", description="It's a little mouse.", tags=[]
+    # )
     # Spaces
     room27 = space.Space("Room 27", "My hotel room.")
     hallway = space.Space("the second floor hallway", "A long narrow hallway.")
@@ -33,8 +34,8 @@ def worldInit():
     hallway.addThings([copy.copy(catFood), copy.copy(catFood), copy.copy(catFood)])
     # Spaces -Actors
     room27.addActors([hungryCat])
-    room27.addActors([copy.copy(mouse), copy.copy(mouse)])
+    # room27.addActors([copy.copy(mouse), copy.copy(mouse)])
     # Player
-    player = species.User("User", location=room27)
+    player = actors.User("User", location=room27)
     actors.player = player
     return player
