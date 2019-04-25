@@ -135,7 +135,7 @@ class AnimalPhysicalMixin:
 
     def canTakeThing(self, thing):
         if "take" in thing.tags:
-            if len(self.inventory < self.max_inv):
+            if len(self.inventory) < self.max_inv:
                 return True
 
     def takeThing(self, thing):
@@ -274,7 +274,7 @@ class HumanPhysicalMixin:
 
     def canTakeThing(self, thing):
         if "take" in thing.tags:
-            if len(self.inventory < self.max_inv):
+            if len(self.inventory) < self.max_inv:
                 return True
             else:
                 return False

@@ -1,5 +1,5 @@
 from parser import parse
-from world import worldInit
+from world2 import worldInit
 from actors import actorList
 from chrono import TIME
 import output
