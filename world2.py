@@ -22,20 +22,6 @@ def worldInit():
     UmbrellaDeVille = actors.Human(
         "Umbrella DeVille", "Ella", "Should be named deMaitreDe."
     )
-    hungryCat = actors.HouseCat(
-        properName="Hungry Cat",
-        commonName="Cat",
-        description="He looks like he has a big appetite.",
-        hunger=15,
-        hunger_rate=15,
-    )
-    neverHungryCat = actors.HouseCat(
-        properName="Hungry Cat",
-        commonName="Cat",
-        description="He looks like he has a big appetite.",
-        hunger=0,
-        hunger_rate=0,
-    )
     # Spaces
     Alley = space.Space("alley", "A dark alley.")
     Park = space.Space("park", "Look at this grass.")
@@ -64,7 +50,6 @@ def worldInit():
     Restaurant.addActors([UmbrellaDeVille])
     VanFleekHome.addActors([GertyVanFleek])
     MansnameHome.addActors([MelissaMansname])
-    Park.addActors([hungryCat, neverHungryCat])
     # Actors -Itinerary
     GrumphTorgi.addItinerary(
         [

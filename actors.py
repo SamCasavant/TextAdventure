@@ -83,6 +83,7 @@ class AnimalPhysicalMixin:
         self.states["hungry"] += 0.1 * self.hunger_rate
         self.states["thirsty"] += 0.1 * self.thirst_rate
         if self.states["hungry"] > 10:
+            print(self.name())
             if "hungry" not in self.tags:
                 self.tags.append("hungry")
         if self.states["thirsty"] > 10:
@@ -234,6 +235,13 @@ class HumanPhysicalMixin:
     def executePlan(self, plan):
         if len(plan) > 0:
             action = plan[0]
+            print(action)
+            print(self.itinerary)
+            if action[:-1] in [item[1] for item in self.itinerary]:
+                print("Hey this should work")
+                index = [item[1] for item in self.itinerary].index(action[:-1])
+                del self.itinerary[index]
+
             if action[0] == "move":
                 self.move(action[1].getDest(self.location))
                 return [
@@ -389,18 +397,29 @@ class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
         properName,
         commonName="person",
         description="A regular human being.",
-        location=0,
-        inventory=[],
+        location=None,
+        inventory=None,
         max_inv=5,
         hunger_rate=1,
         hunger=3,
-        itinerary=[],
-        plan=[],
-        tags=["human"],
+        itinerary=None,
+        plan=None,
+        tags=None,
         thirst=3,
         thirst_rate=1,
     ):
+        if inventory is None:
+            inventory = []
+        if itinerary is None:
+            itinerary = []
+        if plan is None:
+            plan = []
+        if tags is None:
+            tags = ["human"]
+
         self.properName = properName
+        self.commonName = commonName
+        self.description = description
         self.commonName = commonName
         self.description = description
         self.location = location
@@ -493,19 +512,29 @@ class HouseCat(Actor, AnimalPhysicalMixin, AnimalAIMixin):
     def __init__(
         self,
         commonName="Cat",
-        properName="",
-        description=False,
+        properName=None,
+        description=None,
         location=0,
-        inventory=[],
+        inventory=None,
         max_inv=1,
-        plan=[],
+        plan=None,
         hunger_rate=1,
         hunger=3,
         thirst_rate=1,
         thirst=3,
-        tags=[],
-        sounds=["meow", "purr"],
+        tags=None,
+        sounds=None,
     ):
+        if inventory is None:
+            inventory = []
+        if itinerary is None:
+            itinerary = []
+        if plan is None:
+            plan = []
+        if tags is None:
+            tags = ["human"]
+        if sounds is None:
+            sounds = ["meow", "purr"]
         if not properName:
             self.properName = commonName
         else:
