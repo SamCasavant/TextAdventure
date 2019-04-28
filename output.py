@@ -6,7 +6,6 @@ def visOutput(player, location, output):
     for location in visibleLocations:
         if location in player.location.visibleLocations:
             print(output)
-            return
 
 
 def audOutput(player, location, output):
@@ -50,6 +49,6 @@ def report(player, event, cue="visible", verbose=False):
         print(event)
     else:
         if cue == "visible":
-            visOutput(player, event[1], event[0])
+            visOutput(player, event[1].location, event[0])
         elif cue == "audible":
-            audOutput(player, event[1], event[0])
+            audOutput(player, event[1].location, event[0])

@@ -21,7 +21,7 @@ while 1:
                 if "user" not in actor.tags:
                     result = actor.act()
                     if result[0]:
-                        output.report(player, result[2], result[1], verbose=True)
+                        output.report(player, result[1], verbose=True)
                     actor.update()
             TIME.tick()
             print(TIME.getTime("clock"))

@@ -9,44 +9,12 @@ player = None
 actorList = []
 
 
-class Actor:
-    # def __init__(
-    #     self,
-    #     properName,
-    #     commonName="",
-    #     description=False,
-    #     location=0,
-    #     inventory=[],
-    #     max_inv=10,
-    #     plan=[],
-    #     hunger_rate=1,
-    #     hunger=3,
-    #     thirst_rate=1,
-    #     thirst=3,
-    #     tags=[],
-    # ):
-    #     self.properName = properName
-    #     self.commonName = commonName
-    #     if description:
-    #         self.description = description
-    #     else:
-    #         self.description = commonName
-    #     self.inventory = inventory
-    #     self.max_inv = max_inv
-    #     self.plan = plan
-    #
-    #     self.hunger_rate = hunger_rate
-    #     self.thirst_rate = thirst_rate
-    #     self.location = location
-    #     self.tags = tags
-    #     if location:
-    #         location.addActors([self])
-    #
+class Actor:  # This is a real class actor.
     def name(self, formal=False):
         return self.getName(formal)
 
     def update(self):
-        self.updateStates()
+        self.updateStatus()
 
     def act(self):
         plan = self.createPlan()
@@ -57,19 +25,46 @@ class Actor:
         self.location.actors.remove(self)
         self.location = destination
         self.location.actors.append(self)
+        return [1, [f"{self.name()} moves to {destination.name}", self, "move"]]
 
     def take(self, thing):
         if self.canTakeThing(thing):
             self.takeThing(thing)
             self.inventory.append(thing)
+            return [1, [f"{self.name()} picks up {thing.name}.", self, "take"]]
+        else:
+            return [
+                0,
+                [
+                    f"{self.name()} tries to pick up {thing.name} but cannot.",
+                    self,
+                    "take",
+                ],
+            ]
 
     def eat(self, thing):
         if self.canEatThing(thing):
             self.eatThing(thing)
+            return [1, [f"{self.name()} eats {thing.name}.", self, "eat"]]
+        else:
+            return [
+                0,
+                [f"{self.name()} tries to eat {thing.name}, but cannot.", self, "eat"],
+            ]
 
     def drink(self, thing):
         if self.canDrinkThing(thing):
             self.drinkThing(thing)
+            return [1, [f"{self.name()} drinks {thing.name}.", self, "drink"]]
+        else:
+            return [
+                0,
+                [
+                    f"{self.name()} tries to drink {thing.name}, but cannot.",
+                    self,
+                    "drink",
+                ],
+            ]
 
 
 class AnimalPhysicalMixin:
@@ -79,57 +74,42 @@ class AnimalPhysicalMixin:
         else:
             return self.commonName
 
-    def updateStates(self):
-        self.states["hungry"] += 0.1 * self.hunger_rate
-        self.states["thirsty"] += 0.1 * self.thirst_rate
-        if self.states["hungry"] > 10:
-            print(self.name())
-            if "hungry" not in self.tags:
-                self.tags.append("hungry")
-        if self.states["thirsty"] > 10:
-            if "thirsty" not in self.tags:
-                self.tags.append("thirsty")
+    def updateStatus(self):
+        self.states["eat"] += 0.1 * self.hunger_rate
+        self.states["drink"] += 0.1 * self.thirst_rate
+        if self.states["eat"] > 10:
+            self.addWant("eat")
+        if self.states["drink"] > 10:
+            self.addWant("drink")
+
+    def addWant(self, want):
+        if want not in self.wants:
+            self.wants.append(want)
 
     def executePlan(self, plan):
         if len(plan) > 0:
             action = plan[0]
             if action[0] == "move":
-                self.move(action[1].getDest(self.location))
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} moves to {self.location.name}", self, "take"],
-                ]
+                result = self.move(action[1].getDest(self.location))
             elif action[0] == "take":
-                self.take(action[1])
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} picks up {action[1].name}", self, "take"],
-                ]
+                result = self.take(action[1])
             elif action[0] == "eat":
-                self.eat(action[1])
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} eats {action[1].name}.", self, "eat"],
-                ]
+                result = self.eat(action[1])
             elif action[0] == "wait":
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} is waiting.", self, "wait"],
-                ]
+                result = [1, [f"{self.properName} is waiting.", self, "wait"]]
             else:
-                return [
+                result = [
                     0,
-                    self.location,
                     [
                         f"{self.properName} attempts to {action[0]} but doesn't know how.",
                         self,
                         None,
                     ],
                 ]
+            if action[:-1] in [item[1] for item in self.itinerary]:
+                index = [item[1] for item in self.itinerary].index(action[:-1])
+                del self.itinerary[index]
+        return result
 
     def talk(self):
         print(f"{self.properName} {random.choice(self.sounds)}s loudly.")
@@ -158,10 +138,10 @@ class AnimalPhysicalMixin:
     def eatThing(self, thing):
         if thing in self.inventory:
             self.inventory.remove(thing)
-            self.states["hungry"] -= thing.eat_val
+            self.states["eat"] -= thing.eat_val
         elif thing in self.location.things:
             self.location.removeThing(thing)
-            self.states["hungry"] -= thing.eat_val
+            self.states["eat"] -= thing.eat_val
 
     def canDrinkThing(self, thing):
         if thing in self.inventory:
@@ -178,37 +158,26 @@ class AnimalPhysicalMixin:
     def drinkThing(self, thing):
         if thing in self.inventory:
             self.inventory.remove(thing)
-            self.states["thirsty"] -= thing.eat_val
+            self.states["drink"] -= thing.eat_val
         elif thing in self.location.things:
             self.location.removeThing(thing)
-            self.states["thirsty"] -= thing.eat_val
+            self.states["drink"] -= thing.eat_val
 
 
 class AnimalAIMixin:
     def createPlan(self):
         plan = []
-        stateToDesire = {"hungry": "eat", "thirsty": "drink"}
-        for adj in self.states.keys():
-            if adj in self.tags:
-                desire = stateToDesire[adj]
-                for thing in self.inventory:
-                    if desire in thing.tags:
-                        plan.append([desire, thing, self.states[adj]])
-                    break
+        # Choose actions that result from status
+        for want in self.wants:
+            if self.strategies[want] == "search":
+                find = self.search(want)
+                if find:
+                    plan.append(find)
                 else:
-                    for thing in self.location.things:
-                        if desire in thing.tags:
-                            if "take_req" in thing.tags:
-                                if "take" in thing.tags:
-                                    plan.append(["take", thing, self.states[adj]])
-                                    break
-                            else:
-                                plan.append([desire, thing, self.states[adj]])
-                    else:
-                        if "move" not in [plan[0] for plan in plan]:
-                            move = self.findMove()
-                            if move:
-                                plan.append(["move", move, self.states[adj]])
+                    if "move" not in [plan[0] for plan in plan]:
+                        move = self.findMove()
+                        if move:
+                            plan.append(["move", move, self.states[want]])
         if len(plan) == 0:
             plan.append(["wait", 0])
         plan.sort(key=lambda x: x[-1], reverse=True)
@@ -224,6 +193,28 @@ class AnimalAIMixin:
         else:
             return False
 
+    def getStrategy(self, want):
+        try:
+            strategy = self.strategies[want]
+            return strategy
+        except ValueError:
+            return "search"
+
+    def search(self, want):
+        for thing in self.inventory:
+            if want in thing.tags:
+                return [want, thing, self.states[want]]
+        else:
+            for thing in self.location.things:
+                if want in thing.tags:
+                    if "take_req" in thing.tags:
+                        if "take" in thing.tags:
+                            return ["take", thing, self.states[want]]
+                    else:
+                        return [want, thing, self.states[want]]
+            else:
+                return None
+
 
 class HumanPhysicalMixin:
     def getName(self, formal):
@@ -235,50 +226,27 @@ class HumanPhysicalMixin:
     def executePlan(self, plan):
         if len(plan) > 0:
             action = plan[0]
-            print(action)
-            print(self.itinerary)
-            if action[:-1] in [item[1] for item in self.itinerary]:
-                print("Hey this should work")
-                index = [item[1] for item in self.itinerary].index(action[:-1])
-                del self.itinerary[index]
-
             if action[0] == "move":
-                self.move(action[1].getDest(self.location))
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} moves to {self.location.name}", self, "take"],
-                ]
+                result = self.move(action[1].getDest(self.location))
             elif action[0] == "take":
-                self.take(action[1])
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} picks up {action[1].name}", self, "take"],
-                ]
+                result = self.take(action[1])
             elif action[0] == "eat":
-                self.eat(action[1])
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} eats {action[1].name}.", self, "eat"],
-                ]
+                result = self.eat(action[1])
             elif action[0] == "wait":
-                return [
-                    1,
-                    self.location,
-                    [f"{self.properName} is waiting.", self, "wait"],
-                ]
+                result = [1, [f"{self.properName} is waiting.", self, "wait"]]
             else:
-                return [
+                result = [
                     0,
-                    self.location,
                     [
                         f"{self.properName} attempts to {action[0]} but doesn't know how.",
                         self,
                         None,
                     ],
                 ]
+            if action[:-1] in [item[1] for item in self.itinerary]:
+                index = [item[1] for item in self.itinerary].index(action[:-1])
+                del self.itinerary[index]
+        return result
 
     def canTakeThing(self, thing):
         if "take" in thing.tags:
@@ -308,10 +276,10 @@ class HumanPhysicalMixin:
     def eatThing(self, thing):
         if thing in self.inventory:
             self.inventory.remove(thing)
-            self.states["hungry"] -= thing.eat_val
+            self.states["eat"] -= thing.eat_val
         elif thing in self.location.things:
             self.location.removeThing(thing)
-            self.states["hungry"] -= thing.eat_val
+            self.states["eat"] -= thing.eat_val
 
     def canDrinkThing(self, thing):
         if thing in self.inventory:
@@ -328,37 +296,27 @@ class HumanPhysicalMixin:
     def drinkThing(self, thing):
         if thing in self.inventory:
             self.inventory.remove(thing)
-            self.states["thirsty"] -= thing.eat_val
+            self.states["drink"] -= thing.eat_val
         elif thing in self.location.things:
             self.location.removeThing(thing)
-            self.states["thirsty"] -= thing.eat_val
+            self.states["drink"] -= thing.eat_val
 
 
 class HumanAIMixin:
     def createPlan(self):
         plan = []
-        stateToDesire = {"hungry": "eat", "thirsty": "drink"}
-        for adj in self.states.keys():
-            if adj in self.tags:
-                desire = stateToDesire[adj]
-                for thing in self.inventory:
-                    if desire in thing.tags:
-                        plan.append([desire, thing, self.states[adj]])
-                    break
+        # Choose actions that result from status
+        for want in self.wants:
+            if self.strategies[want] == "search":
+                find = self.search(want)
+                if find:
+                    plan.append(find)
                 else:
-                    for thing in self.location.things:
-                        if desire in thing.tags:
-                            if "take_req" in thing.tags:
-                                if "take" in thing.tags:
-                                    plan.append(["take", thing, self.states[adj]])
-                                    break
-                            else:
-                                plan.append([desire, thing, self.states[adj]])
-                    else:
-                        if "move" not in [plan[0] for plan in plan]:
-                            move = self.findMove()
-                            if move:
-                                plan.append(["move", move, self.states[adj]])
+                    if "move" not in [plan[0] for plan in plan]:
+                        move = self.findMove()
+                        if move:
+                            plan.append(["move", move, self.states[want]])
+        # Choose actions that result from long term plan
         if self.itinerary:
             if (
                 self.itinerary[0][0] - 1200 < TIME.time
@@ -390,6 +348,28 @@ class HumanAIMixin:
             self.itinerary.append(item)
         self.itinerary.sort()
 
+    def getStrategy(self, want):
+        try:
+            strategy = self.strategies[want]
+            return strategy
+        except ValueError:
+            return "search"
+
+    def search(self, want):
+        for thing in self.inventory:
+            if want in thing.tags:
+                return [want, thing, self.states[want]]
+        else:
+            for thing in self.location.things:
+                if want in thing.tags:
+                    if "take_req" in thing.tags:
+                        if "take" in thing.tags:
+                            return ["take", thing, self.states[want]]
+                    else:
+                        return [want, thing, self.states[want]]
+            else:
+                return None
+
 
 class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
     def __init__(
@@ -407,6 +387,8 @@ class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
         tags=None,
         thirst=3,
         thirst_rate=1,
+        wants=None,
+        strategies=None,
     ):
         if inventory is None:
             inventory = []
@@ -416,7 +398,10 @@ class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
             plan = []
         if tags is None:
             tags = ["human"]
-
+        if wants is None:
+            wants = []
+        if strategies is None:
+            strategies = {"eat": "search", "drink": "search", "money": "search"}
         self.properName = properName
         self.commonName = commonName
         self.description = description
@@ -425,10 +410,12 @@ class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
         self.location = location
         self.inventory = inventory
         self.max_inv = max_inv
-        self.states = {"hungry": hunger, "thirsty": thirst}
+        self.states = {"eat": hunger, "drink": thirst}
         self.hunger_rate = hunger_rate
         self.thirst_rate = thirst_rate
         self.tags = tags
+        self.wants = wants
+        self.strategies = strategies
         if itinerary:
             self.itinerary = itinerary.sort()
         else:
@@ -457,7 +444,7 @@ class User(Actor, HumanPhysicalMixin, AnimalPhysicalMixin):
         self.location = location
         self.inventory = inventory
         self.max_inv = max_inv
-        self.states = {"hungry": hunger, "thirsty": thirst}
+        self.states = {"eat": hunger, "drink": thirst}
         self.hunger_rate = hunger_rate
         self.thirst_rate = thirst_rate
         self.tags = tags
@@ -524,6 +511,7 @@ class HouseCat(Actor, AnimalPhysicalMixin, AnimalAIMixin):
         thirst=3,
         tags=None,
         sounds=None,
+        wants=None,
     ):
         if inventory is None:
             inventory = []
@@ -535,6 +523,8 @@ class HouseCat(Actor, AnimalPhysicalMixin, AnimalAIMixin):
             tags = ["human"]
         if sounds is None:
             sounds = ["meow", "purr"]
+        if wants is None:
+            wants = []
         if not properName:
             self.properName = commonName
         else:
@@ -545,9 +535,10 @@ class HouseCat(Actor, AnimalPhysicalMixin, AnimalAIMixin):
         self.inventory = inventory
         self.max_inv = max_inv
         self.plan = plan
-        self.states = {"hungry": hunger, "thirsty": thirst}
+        self.states = {"eat": hunger, "drink": thirst}
         self.hunger_rate = hunger_rate
         self.thirst_rate = thirst_rate
         self.tags = tags
         self.sounds = sounds
+        self.wants = wants
         actorList.append(self)

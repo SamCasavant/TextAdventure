@@ -2,16 +2,15 @@ import actors
 import things
 import space
 from copy import copy
-import chrono
 
 
 def worldInit():
     # things
-    pie = things.Thing("pie", "A freshly baked pie.", tags=["take", "eat"])
+    pie = things.Thing("pie", "A freshly baked pie.", tags=["take", "eat"], eat_val=10)
     knife = things.Thing("knife", "Sharp as all heck.", tags=["take"])
 
     # Actors
-    GrumphTorgi = actors.Human("Grumph Torgi", "Grumph", "A villain!")
+    GrumphTorgi = actors.Human("Grumph Torgi", "Grumph", "A villain!", hunger=15)
     SilbertHumperdinck = actors.Human(
         "Silbert Humperdinck", "Sil", "Looks like a respectable fellow."
     )
