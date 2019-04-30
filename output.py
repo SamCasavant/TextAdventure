@@ -44,6 +44,23 @@ def listToNatural(pyList):
     return output[:-2]  # delete trailing comma and space
 
 
+def getPronoun(noun):  # Not implemented
+    if type(noun) is Thing:
+        return "it"
+    elif type(noun) is Actor:
+        if noun.gender == "m":
+            return "he"
+        elif noun.gender == "f":
+            return "she"
+        else:
+            return "they"
+
+
+def conjugate(verb, actor):  # Not implemented
+    if type(actor) is User:
+        return verb.I
+
+
 def report(player, event, cue="visible", verbose=False):
     if verbose:
         print(event)

@@ -9,7 +9,9 @@ player = None
 actorList = []
 
 
-class Actor:  # This is a real class actor.
+class ActorMixin:  # This is a real class actor.
+    """This class implements a set of basic functions that apply to all of the agents in the game."""
+
     def name(self, formal=False):
         return self.getName(formal)
 
@@ -17,6 +19,7 @@ class Actor:  # This is a real class actor.
         self.updateStatus()
 
     def act(self):
+        """Takes actions and returns a result of the form [successBool, [output, actor, verb]]"""
         plan = self.createPlan()
         result = self.executePlan(plan)
         return result
@@ -68,7 +71,9 @@ class Actor:  # This is a real class actor.
 
 
 class AnimalPhysicalMixin:
-    def getName(self, formal):
+    """This class implements basic animal functions like hunger and thirst."""
+
+    def getName(self, formal=False):
         if formal:
             return self.properName
         else:
@@ -77,14 +82,6 @@ class AnimalPhysicalMixin:
     def updateStatus(self):
         self.states["eat"] += 0.1 * self.hunger_rate
         self.states["drink"] += 0.1 * self.thirst_rate
-        if self.states["eat"] > 10:
-            self.addWant("eat")
-        if self.states["drink"] > 10:
-            self.addWant("drink")
-
-    def addWant(self, want):
-        if want not in self.wants:
-            self.wants.append(want)
 
     def executePlan(self, plan):
         if len(plan) > 0:
@@ -168,18 +165,17 @@ class AnimalAIMixin:
     def createPlan(self):
         plan = []
         # Choose actions that result from status
-        for want in self.wants:
-            if self.strategies[want] == "search":
-                find = self.search(want)
+        for state in self.states.keys():
+            if self.strategies[state] == "search":
+                find = self.search(state)
                 if find:
                     plan.append(find)
                 else:
                     if "move" not in [plan[0] for plan in plan]:
                         move = self.findMove()
                         if move:
-                            plan.append(["move", move, self.states[want]])
-        if len(plan) == 0:
-            plan.append(["wait", 0])
+                            plan.append(["move", move, self.states[state]])
+        plan.append(["wait", self.lazyThreshold])
         plan.sort(key=lambda x: x[-1], reverse=True)
         return plan
 
@@ -193,31 +189,35 @@ class AnimalAIMixin:
         else:
             return False
 
-    def getStrategy(self, want):
+    def getStrategy(self, state):
         try:
-            strategy = self.strategies[want]
+            strategy = self.strategies[state]
             return strategy
         except ValueError:
             return "search"
 
-    def search(self, want):
+    def search(self, state):
         for thing in self.inventory:
-            if want in thing.tags:
-                return [want, thing, self.states[want]]
+            if state in thing.tags:
+                return [state, thing, self.states[state]]
         else:
             for thing in self.location.things:
-                if want in thing.tags:
+                if state in thing.tags:
                     if "take_req" in thing.tags:
                         if "take" in thing.tags:
-                            return ["take", thing, self.states[want]]
+                            return ["take", thing, self.states[state]]
                     else:
-                        return [want, thing, self.states[want]]
+                        return [state, thing, self.states[state]]
             else:
                 return None
 
 
 class HumanPhysicalMixin:
-    def getName(self, formal):
+    """This class implements physical properties that are applicable to humans."""
+
+    def getName(
+        self, formal=True
+    ):  # Only different from animal getName by defaulting to formal.
         if formal:
             return self.properName
         else:
@@ -303,33 +303,31 @@ class HumanPhysicalMixin:
 
 
 class HumanAIMixin:
+    """This class implements a set of higher level planning and actions."""
+
     def createPlan(self):
         plan = []
         # Choose actions that result from status
-        for want in self.wants:
-            if self.strategies[want] == "search":
-                find = self.search(want)
+        for state in self.states.keys():
+            if self.strategies[state] == "search":
+                find = self.search(state)
                 if find:
                     plan.append(find)
                 else:
                     if "move" not in [plan[0] for plan in plan]:
                         move = self.findMove()
                         if move:
-                            plan.append(["move", move, self.states[want]])
+                            plan.append(["move", move, self.states[state]])
         # Choose actions that result from long term plan
         if self.itinerary:
-            if (
-                self.itinerary[0][0] - 1200 < TIME.time
-            ):  # If action is to be done in less than 20 minutes. TODO: Make dynamic
-                plan.append(
-                    [
-                        self.itinerary[0][1][0],
-                        self.itinerary[0][1][1],
-                        1000 / (self.itinerary[0][0] - TIME.time + 1),
-                    ]
-                )
-        if len(plan) == 0:
-            plan.append(["wait", 0])
+            plan.append(
+                [
+                    self.itinerary[0][1][0],
+                    self.itinerary[0][1][1],
+                    1000 / (self.itinerary[0][0] - TIME.time + 1),
+                ]
+            )
+        plan.append(["wait", self.lazyThreshold])
         plan.sort(key=lambda x: x[-1], reverse=True)
         return plan
 
@@ -348,74 +346,73 @@ class HumanAIMixin:
             self.itinerary.append(item)
         self.itinerary.sort()
 
-    def getStrategy(self, want):
+    def getStrategy(self, state):
         try:
-            strategy = self.strategies[want]
+            strategy = self.strategies[state]
             return strategy
         except ValueError:
             return "search"
 
-    def search(self, want):
+    def search(self, state):
         for thing in self.inventory:
-            if want in thing.tags:
-                return [want, thing, self.states[want]]
+            if state in thing.tags:
+                return [state, thing, self.states[state]]
         else:
             for thing in self.location.things:
-                if want in thing.tags:
+                if state in thing.tags:
                     if "take_req" in thing.tags:
                         if "take" in thing.tags:
-                            return ["take", thing, self.states[want]]
+                            return ["take", thing, self.states[state]]
                     else:
-                        return [want, thing, self.states[want]]
+                        return [state, thing, self.states[state]]
             else:
                 return None
 
 
-class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
+class Human(ActorMixin, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
+    """Properties:
+    States: A dictionary of potential causes of action and their degree of intensity, labeled according to the relevant verb (instead of 'hungry', 'eat') for internal consistency.
+    Strategies: A dictionary that relates states to response strategies; only search is currently implemented.
+    Itinerary: A list of planned actions and the time, in seconds since midnight, that it is supposed to occur by.
+    Tags: A miscellanious collection of properties that impact what a character can do and what can be done to them.
+    lazyThreshold: The priority given to 'wait' in the plan."""
+
     def __init__(
         self,
         properName,
         commonName="person",
         description="A regular human being.",
-        location=None,
         inventory=None,
         max_inv=5,
         hunger_rate=1,
         hunger=3,
         itinerary=None,
-        plan=None,
         tags=None,
         thirst=3,
         thirst_rate=1,
-        wants=None,
         strategies=None,
+        lazyThreshold=5,
     ):
         if inventory is None:
             inventory = []
         if itinerary is None:
             itinerary = []
-        if plan is None:
-            plan = []
         if tags is None:
             tags = ["human"]
-        if wants is None:
-            wants = []
         if strategies is None:
             strategies = {"eat": "search", "drink": "search", "money": "search"}
+        self.plan = []
+        self.states = {"eat": hunger, "drink": thirst}
         self.properName = properName
         self.commonName = commonName
         self.description = description
-        self.commonName = commonName
-        self.description = description
-        self.location = location
         self.inventory = inventory
         self.max_inv = max_inv
-        self.states = {"eat": hunger, "drink": thirst}
         self.hunger_rate = hunger_rate
         self.thirst_rate = thirst_rate
         self.tags = tags
-        self.wants = wants
         self.strategies = strategies
+        self.lazyThreshold = lazyThreshold
         if itinerary:
             self.itinerary = itinerary.sort()
         else:
@@ -423,13 +420,12 @@ class Human(Actor, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
         actorList.append(self)
 
 
-class User(Actor, HumanPhysicalMixin, AnimalPhysicalMixin):
+class User(ActorMixin, HumanPhysicalMixin, AnimalPhysicalMixin):
     def __init__(
         self,
         properName,
         commonName="me",
         description="This is the person that I am.",
-        location=0,
         inventory=[],
         max_inv=10,
         hunger_rate=1,
@@ -441,7 +437,6 @@ class User(Actor, HumanPhysicalMixin, AnimalPhysicalMixin):
         self.properName = properName
         self.commonName = commonName
         self.description = description
-        self.location = location
         self.inventory = inventory
         self.max_inv = max_inv
         self.states = {"eat": hunger, "drink": thirst}
@@ -469,6 +464,10 @@ class User(Actor, HumanPhysicalMixin, AnimalPhysicalMixin):
         else:
             print("I don't have anything at the moment.")
 
+    def chk_states(self):
+        for state in self.states.keys():
+            print(f"{state}: {self.states[state]}.")
+
     def act(self, action):
         if action[0] == "move":
             self.move(action[1].getDest(self.location))
@@ -495,50 +494,47 @@ class User(Actor, HumanPhysicalMixin, AnimalPhysicalMixin):
             return [1, self.location, ["I wait.", self, "wait"]]
 
 
-class HouseCat(Actor, AnimalPhysicalMixin, AnimalAIMixin):
+class HouseCat(ActorMixin, AnimalPhysicalMixin, AnimalAIMixin):
+    """Properties:
+    States: A dictionary of potential causes of action and their degree of intensity, labeled according to the relevant verb (instead of 'hungry', 'eat') for internal consistency.
+    Tags: A miscellanious collection of properties that impact what a character can do and what can be done to them.
+    lazyThreshold: The priority given to 'wait' in the plan."""
+
     def __init__(
         self,
         commonName="Cat",
         properName=None,
         description=None,
-        location=0,
         inventory=None,
         max_inv=1,
-        plan=None,
         hunger_rate=1,
         hunger=3,
         thirst_rate=1,
         thirst=3,
         tags=None,
         sounds=None,
-        wants=None,
+        lazyThreshold=5,
     ):
         if inventory is None:
             inventory = []
         if itinerary is None:
             itinerary = []
-        if plan is None:
-            plan = []
         if tags is None:
             tags = ["human"]
         if sounds is None:
             sounds = ["meow", "purr"]
-        if wants is None:
-            wants = []
         if not properName:
             self.properName = commonName
         else:
             self.properName = properName
         self.commonName = commonName
         self.description = description
-        self.location = location
         self.inventory = inventory
         self.max_inv = max_inv
-        self.plan = plan
         self.states = {"eat": hunger, "drink": thirst}
         self.hunger_rate = hunger_rate
         self.thirst_rate = thirst_rate
         self.tags = tags
         self.sounds = sounds
-        self.wants = wants
+        self.lazyThreshold = lazyThreshold
         actorList.append(self)

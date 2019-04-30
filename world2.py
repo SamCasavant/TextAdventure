@@ -10,7 +10,7 @@ def worldInit():
     knife = things.Thing("knife", "Sharp as all heck.", tags=["take"])
 
     # Actors
-    GrumphTorgi = actors.Human("Grumph Torgi", "Grumph", "A villain!", hunger=15)
+    GrumphTorgi = actors.Human("Grumph Torgi", "Grumph", "A villain!")
     SilbertHumperdinck = actors.Human(
         "Silbert Humperdinck", "Sil", "Looks like a respectable fellow."
     )
@@ -59,6 +59,7 @@ def worldInit():
     )
     # SilbertHumperdinck.addItinerary([(25200, 'wake up'), ()])
     # Player
-    player = actors.User("User", location=Park)
+    player = actors.User("User")
+    Park.addActors([player])
     actors.player = player
     return player

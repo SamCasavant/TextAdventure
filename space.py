@@ -1,3 +1,6 @@
+import things
+
+
 class Space:
     def __init__(self, name, description, visibleLocations=[], audibleLocations=[]):
         self.name = name
@@ -115,6 +118,23 @@ def findPath(
         path.insert(index, element)
         index += 1
     return path
+
+
+class Bedroom:
+    def __init__(self):
+        self.bed = things.Thing("bed", "Comfy")
+        self.bureau = things.Container("bureau", description="Drawers for drawers.")
+
+
+class Kitchen:
+    def __init__(self):
+        self.fridge = things.Container("fridge", description="Pretty chill.")
+
+
+class House:
+    def __init__(self, bedrooms=1):
+        self.bedroom = Bedroom()
+        self.kitchen = Kitchen()
 
 
 # class Building():

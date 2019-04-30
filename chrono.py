@@ -34,4 +34,4 @@ class Chrono:  # Time, in seconds since midnight
             return [hours, minutes, seconds]
 
 
-TIME = Chrono(33600, step=300)  # Start time at 5AM, 5 minutes at a time)
+TIME = Chrono(33600, step=60)  # Start time at 5AM, 5 minutes at a time)

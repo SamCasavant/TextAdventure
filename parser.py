@@ -50,6 +50,9 @@ def parse(player, command):  # produces actions of the form [verb, thing]
                 print(
                     f"You try striking up a conversation with {obj.name}, but it seems unresponsive."
                 )
+                return 0
+            else:
+                return 0
         elif words[0] == "open":
             if obj in player.location.things:
                 if "openable" in obj.tags:
