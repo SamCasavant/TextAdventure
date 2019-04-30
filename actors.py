@@ -318,6 +318,9 @@ class HumanAIMixin:
                         move = self.findMove()
                         if move:
                             plan.append(["move", move, self.states[state]])
+            elif self.strategies[state] == "mug":
+                action = self.mug(self.states[state])
+                plan.append(action)
         # Choose actions that result from long term plan
         if self.itinerary:
             plan.append(
@@ -368,14 +371,27 @@ class HumanAIMixin:
             else:
                 return None
 
+    def mug(self, priority):
+        for condition in self.mugConditions:
+            if isMet(condition):
+                pass
+            elif condition[1]<priority:
+                pass
+            else:
+
+        self.mugConditions
+
+    def isMet(self, condition):
+
 
 class Human(ActorMixin, HumanPhysicalMixin, HumanAIMixin, AnimalPhysicalMixin):
     """Properties:
-    States: A dictionary of potential causes of action and their degree of intensity, labeled according to the relevant verb (instead of 'hungry', 'eat') for internal consistency.
+    States: A dictionary of potential causes of action and their degree of intensity, labeled according to the relevant verb (instead of 'hungry', 'eat') for internal consistency (where possible).
     Strategies: A dictionary that relates states to response strategies; only search is currently implemented.
     Itinerary: A list of planned actions and the time, in seconds since midnight, that it is supposed to occur by.
     Tags: A miscellanious collection of properties that impact what a character can do and what can be done to them.
-    lazyThreshold: The priority given to 'wait' in the plan."""
+    lazyThreshold: The priority given to 'wait' in the plan.
+    Conditions: Prerequisites for strategies of the form ['property', 'value', 'priority'], eg. Grumph should have a weapon and would like an associate before attempting to mug, so conditions['mug']=[['have', 'weapon', 100], ['be', 'cooperating', 10]"""
 
     def __init__(
         self,
